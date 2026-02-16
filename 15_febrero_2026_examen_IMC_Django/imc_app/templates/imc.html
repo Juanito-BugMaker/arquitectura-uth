@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calculadora de IMC</title>
+</head>
+<body>
+
+<h1>Calculadora de IMC</h1>
+
+<form method="POST">
+    {% csrf_token %}
+    
+    <label>Peso (kg):</label>
+    <input type="number" step="any" name="peso" required><br><br>
+
+    <label>Altura (m):</label>
+    <input type="number" step="any" name="altura" required><br><br>
+
+    <button type="submit">Calcular IMC</button>
+    <button type="reset">Limpiar</button>
+</form>
+
+{% if error %}
+<p style="color:red">{{ error }}</p>
+{% endif %}
+
+{% if resultado %}
+<h2>Resultados</h2>
+<p>IMC: {{ resultado.imc }}</p>
+<p>Categoría: {{ resultado.categoria }}</p>
+{% endif %}
+
+</body>
+</html>
