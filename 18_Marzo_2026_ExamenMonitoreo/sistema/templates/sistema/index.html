@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Sistema</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-4">
+        <div class="alert alert-info text-center">
+            <h5>Monitoreo del Sistema (Django + Psutil + Docker)</h5>
+            <p class="mb-0">
+                <strong>Presentado por:</strong><br>
+                Inmer Suazo | Cuenta: 202020010269
+            </p>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Panel de Control</h2>
+            <button onclick="location.reload();" class="btn btn-primary">Actualizar Manualmente</button>
+        </div>
+
+        {% if error %}
+            <div class="alert alert-danger">
+                <h4>¡Atención!</h4>
+                <p>{{ mensaje_error }}</p>
+            </div>
+        {% else %}
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="card shadow-sm border-primary">
+                        <div class="card-header bg-primary text-white">Información del SO y CPU</div>
+                        <div class="card-body">
+                            <p><strong>Sistema Operativo:</strong> {{ os_info }}</p>
+                            <p><strong>Núcleos Lógicos:</strong> {{ cpu_cores }}</p>
+                            <p><strong>Uso actual de CPU:</strong> {{ cpu_percent }} %</p>
+                            <div class="progress">
+                                <div class="progress-bar bg-info" style="width: {{ cpu_percent }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <div class="card shadow-sm border-success">
+                        <div class="card-header bg-success text-white">Memoria RAM</div>
+                        <div class="card-body">
+                            <p><strong>Total:</strong> {{ ram_total_gb }} GB</p>
+                            <p><strong>Usada:</strong> {{ ram_used_gb }} GB</p>
+                            <p><strong>Porcentaje de uso:</strong> {{ ram_percent }} %</p>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" style="width: {{ ram_percent }}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12 mb-3">
+                    <div class="card shadow-sm border-warning">
+                        <div class="card-header bg-warning text-dark">Almacenamiento (Disco Raíz)</div>
+                        <div class="card-body row">
+                            <div class="col-sm-4"><strong>Total:</strong> {{ disk_total_gb }} GB</div>
+                            <div class="col-sm-4"><strong>Usado:</strong> {{ disk_used_gb }} GB</div>
+                            <div class="col-sm-4"><strong>Libre:</strong> {{ disk_free_gb }} GB</div>
+                            <div class="col-12 mt-2">
+                                <strong>Uso:</strong> {{ disk_percent }} %
+                                <div class="progress">
+                                    <div class="progress-bar bg-warning" style="width: {{ disk_percent }}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>  
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        setTimeout(function(){
+            window.location.reload(1);
+        }, 5000); // 5000 milisegundos = 5 segundos
+    </script>
+</body>
+</html>
