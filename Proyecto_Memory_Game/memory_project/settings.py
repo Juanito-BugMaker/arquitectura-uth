@@ -15,18 +15,24 @@ DEBUG = os.getenv("DEBUG", "True") == "False"
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
-    ".railway.app"
+    ".railway.app",
+    "3.19.242.211",
+    "3.19.242.211.nip.io",
+    "grupo2.suazofotografia.top"
 ]
 
 # 🔐 CSRF
 CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:8000",
     "http://localhost:8000",
-    "https://memory-game-production-5590.up.railway.app"
+    "https://memory-game-production-5590.up.railway.app",
+    "http://3.19.242.211",
+    "http://3.19.242.211.nip.io",
+    "https://grupo2.suazofotografia.top"
 ]
 
-CSRF_COOKIE_SECURE = not DEBUG
-SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
@@ -35,9 +41,6 @@ LOGIN_URL = '/'
 LOGIN_REDIRECT_URL = '/menu/'
 LOGOUT_REDIRECT_URL = '/'
 
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-]
 
 # 📦 APPS
 INSTALLED_APPS = [
@@ -48,6 +51,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'memory_game',
+    'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 ]
 
 # ⚙️ MIDDLEWARE
@@ -60,6 +68,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'memory_project.urls'
@@ -116,3 +125,31 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # ⚠️ DEFAULT FIELD
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# === CONFIGURACIONES DE GOOGLE OAUTH ===
+
+# Buscar el ID del sitio dinámicamente
+def get_site_id():
+    try:
+        from django.contrib.sites.models import Site
+        return Site.objects.get(domain='grupo2.suazofotografia.top').id
+    except:
+        return 1
+
+SITE_ID = get_site_id()
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+]
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+
+# --- NUEVAS LÍNEAS PARA ARREGLAR EL LOGIN ---
+SOCIALACCOUNT_LOGIN_ON_GET = True
+SOCIALACCOUNT_AUTO_SIGNUP = True
+SOCIALACCOUNT_QUERY_EMAIL = True
+ACCOUNT_SESSION_REMEMBER = True
+SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
+LOGIN_REDIRECT_URL = '/menu/'  # <-- A donde quiere que vayan después de loguearse
