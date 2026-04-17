@@ -1,0 +1,192 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>🎮 NEUROMATCH</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Orbitron', sans-serif;
+    background: radial-gradient(circle at top, #020617, #000000);
+    color: white;
+    overflow: hidden;
+}
+
+/* 🔥 FONDO ANIMADO */
+canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+/* CONTENEDOR */
+.container {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    margin-top: 10vh;
+}
+
+/* TITULO */
+h1 {
+    font-size: 40px;
+    color: cyan;
+    text-shadow: 0 0 20px cyan;
+    animation: glow 2s infinite alternate;
+}
+
+/* USER */
+.user {
+    margin-bottom: 20px;
+    color: #94a3b8;
+}
+
+/* BOTONES */
+.btn {
+    display: block;
+    width: 260px;
+    margin: 15px auto;
+    padding: 15px;
+    border-radius: 30px;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-weight: bold;
+}
+
+/* COLORES */
+.play { background: #00ff95; }
+.profile { background: #00c6ff; }
+.ranking { background: #ffc107; }
+.logout { background: #ff1744; }
+
+.btn:hover {
+    transform: scale(1.15);
+    box-shadow: 0 0 30px cyan;
+}
+
+/* GLOW ANIMADO */
+@keyframes glow {
+    from { text-shadow: 0 0 10px cyan; }
+    to { text-shadow: 0 0 30px cyan; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- 🎆 PARTICULAS -->
+<canvas id="particles"></canvas>
+
+<div class="container">
+
+    <h1>🎮NEUROMATCH</h1>
+    <h2>Bienvenido {{ user.username }}</h2>
+
+    <div class="user">👤 {{ user.username }}</div>
+
+    <button class="btn play" onclick="playClick(); go('/difficulty/')">
+        ▶ JUGAR
+    </button>
+
+    <button class="btn profile" onclick="playClick(); go('/profile/')">
+        👤 PERFIL
+    </button>
+
+    <button class="btn ranking" onclick="playClick(); go('/ranking/')">
+        🏆 RANKING
+    </button>
+
+    <button class="btn logout" onclick="playClick(); go('/logout/')">
+        🚪 SALIR
+    </button>
+
+</div>
+
+<!-- 🔊 AUDIO -->
+<audio id="hoverSound" src="{% static 'sounds/hover.mp3' %}"></audio>
+<audio id="clickSound" src="{% static 'sounds/click.mp3' %}"></audio>
+<audio id="bgMusic" src="{% static 'music/menu.mp3' %}" loop></audio>
+
+<script>
+
+/* 🔊 SONIDOS */
+function playHover(){
+    const a = document.getElementById("hoverSound");
+    a.currentTime = 0;
+    a.volume = 0.3;
+    a.play().catch(()=>{});
+}
+
+function playClick(){
+    const a = document.getElementById("clickSound");
+    a.currentTime = 0;
+    a.volume = 0.5;
+    a.play().catch(()=>{});
+}
+
+/* 🎵 MUSICA */
+document.addEventListener("click", () => {
+    const music = document.getElementById("bgMusic");
+    music.volume = 0.3;
+    music.play().catch(()=>{});
+}, { once: true });
+
+/* 🚀 NAVEGACIÓN */
+function go(url){
+    setTimeout(() => {
+        window.location.href = url;
+    }, 200);
+}
+
+/* 🎆 PARTICULAS */
+const canvas = document.getElementById("particles");
+const ctx = canvas.getContext("2d");
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+let particles = [];
+
+for(let i=0; i<80; i++){
+    particles.push({
+        x: Math.random()*canvas.width,
+        y: Math.random()*canvas.height,
+        size: Math.random()*2,
+        speed: Math.random()*1
+    });
+}
+
+function animate(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    particles.forEach(p=>{
+        p.y += p.speed;
+        if(p.y > canvas.height) p.y = 0;
+
+        ctx.fillStyle = "cyan";
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+        ctx.fill();
+    });
+
+    requestAnimationFrame(animate);
+}
+
+animate();
+
+/* 🔊 HOVER EVENTOS */
+document.querySelectorAll(".btn").forEach(btn=>{
+    btn.addEventListener("mouseover", playHover);
+});
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ranking</title>
+
+<style>
+body {
+    background: #020617;
+    color: white;
+    font-family: 'Orbitron', sans-serif;
+    text-align: center;
+}
+
+table {
+    margin: auto;
+    border-collapse: collapse;
+    width: 60%;
+}
+
+th, td {
+    padding: 15px;
+    border-bottom: 1px solid cyan;
+}
+
+th {
+    color: cyan;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🏆 RANKING GLOBAL</h1>
+
+<table>
+<tr>
+    <th>#</th>
+    <th>Jugador</th>
+    <th>Puntos</th>
+    <th>Victorias</th>
+</tr>
+
+{% for player in ranking %}
+<tr>
+    <td>{{ forloop.counter }}</td>
+    <td>{{ player.user.username }}</td>
+    <td>{{ player.score }}</td>
+    <td>{{ player.wins }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+<br>
+<button onclick="window.location.href='/menu/'">⬅ Volver</button>
+
+</body>
+</html>

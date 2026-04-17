@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Perfil Gamer</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background: radial-gradient(circle at top, #020617, #000000);
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+/* CONTENEDOR */
+.container {
+    text-align: center;
+    background: rgba(0,0,0,0.6);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 0 30px cyan;
+    width: 420px;
+    animation: fadeIn 1s ease-in-out;
+}
+
+/* TITULOS */
+h1 {
+    color: cyan;
+    text-shadow: 0 0 10px cyan;
+}
+
+h2 {
+    margin-top: 25px;
+    color: cyan;
+}
+
+/* STATS */
+.stat-box {
+    margin-top: 10px;
+    padding: 15px;
+    background: #0f172a;
+    border-radius: 10px;
+    border: 1px solid cyan;
+}
+
+/* HISTORIAL */
+.history {
+    max-height: 180px;
+    overflow-y: auto;
+    margin-top: 10px;
+    padding: 10px;
+    background: #020617;
+    border-radius: 10px;
+    border: 1px solid cyan;
+}
+
+.game-item {
+    padding: 8px;
+    border-bottom: 1px solid #1e293b;
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+}
+
+/* COLORES RESULTADO */
+.win { color: lime; }
+.lose { color: red; }
+
+/* BOTÓN */
+.btn {
+    margin-top: 20px;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 25px;
+    background: cyan;
+    color: black;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 15px cyan;
+}
+
+/* ANIMACIÓN */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>👤 {{ user.username }}</h1>
+
+    <h2>📊 Estadísticas</h2>
+
+    <div class="stat-box">
+        <p>🏆 Victorias: {{ stats.wins }}</p>
+        <p>💀 Derrotas: {{ stats.losses }}</p>
+        <p>🎮 Partidas: {{ stats.games_played }}</p>
+
+        <!-- 🔥 NUEVO -->
+        <p>⭐ Puntos: {{ stats.score }}</p>
+        <p>📈 Win Rate: {{ win_rate }}%</p>
+    </div>
+
+    <h2>📜 Historial</h2>
+
+    <div class="history">
+        {% for game in history %}
+            <div class="game-item {% if game.result == 'win' %}win{% else %}lose{% endif %}">
+                <span>{{ game.level }}</span>
+                <span>{{ game.time_spent }}s</span>
+                <span>{{ game.score }} pts</span>
+            </div>
+        {% empty %}
+            <p>No hay partidas aún</p>
+        {% endfor %}
+    </div>
+
+    <button class="btn" onclick="location.href='/menu/'">
+        ⬅ Volver al Menú
+    </button>
+
+</div>
+
+</body>
+</html>

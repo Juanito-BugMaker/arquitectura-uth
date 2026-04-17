@@ -1,0 +1,403 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎮 NEUROMATCH</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: white;
+            text-align: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        .clock {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        #attempts {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        #game-board {
+            display: grid;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px auto;
+        }
+
+        .card {
+            width: 80px;
+            height: 80px;
+            background: #1e293b;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 32px;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .card:hover {
+            transform: scale(1.05);
+        }
+
+        .card.flipped,
+        .card.matched {
+            background: #334155;
+        }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+
+        button:hover {
+            background: #1d4ed8;
+        }
+
+        #loseModal,
+        #winModal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-box {
+            background: #111827;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+            min-width: 280px;
+        }
+
+        .modal-box h1 {
+            margin-top: 0;
+        }
+    </style>
+</head>
+
+<body id="body">
+    <h1 id="title"></h1>
+
+    <div class="clock" id="timer">60</div>
+    <div id="attempts"></div>
+
+    <div id="game-board"></div>
+
+    <button onclick="volverMenu()">Volver al Menú</button>
+
+    <!-- AUDIO -->
+    <audio id="bgMusic" loop></audio>
+    <audio id="loseSound" src="{% static 'sounds/lose.mp3' %}"></audio>
+    <audio id="flipSound" src="{% static 'sounds/flip.mp3' %}"></audio>
+    <audio id="winSound" src="{% static 'sounds/win.mp3' %}"></audio>
+
+    <!-- MODALES -->
+    <div id="loseModal">
+        <div class="modal-box">
+            <h1 style="color: red;">💀 PERDISTE</h1>
+            <button onclick="location.reload()">🔄 Reintentar</button>
+        </div>
+    </div>
+
+    <div id="winModal">
+        <div class="modal-box">
+            <h1 style="color: cyan;">🏆 GANASTE</h1>
+            <button onclick="nextLevel()">⬆ Siguiente nivel</button>
+        </div>
+    </div>
+
+    <script>
+        const level = new URLSearchParams(window.location.search).get("level");
+
+        // Música
+        let musicStarted = false;
+
+        function startMusic() {
+            if (musicStarted) return;
+
+            const music = document.getElementById("bgMusic");
+            music.src = "{% static 'music/game.mp3' %}";
+            music.volume = 0.4;
+
+            music.play()
+                .then(() => {
+                    musicStarted = true;
+                })
+                .catch(() => {});
+        }
+
+        document.addEventListener("click", startMusic, { once: true });
+
+        // Configuración
+        let columns = 4;
+        let rows = 4;
+        let attempts = 12;
+        let levelName = "NOVATO";
+        let timeLeft = 60;
+
+        switch (level) {
+            case "basic":
+                columns = 4;
+                rows = 4;
+                attempts = 12;
+                levelName = "NOVATO";
+                break;
+            case "medium":
+                columns = 6;
+                rows = 4;
+                attempts = 10;
+                levelName = "ESTRATEGA";
+                break;
+            case "hard":
+                columns = 8;
+                rows = 6;
+                attempts = 8;
+                levelName = "MAESTRO";
+                break;
+            case "extreme":
+                columns = 10;
+                rows = 4;
+                attempts = 5;
+                levelName = "LEYENDA";
+                break;
+            default:
+                columns = 4;
+                rows = 4;
+                attempts = 12;
+                levelName = "NOVATO";
+                break;
+        }
+
+        document.getElementById("title").innerText = levelName;
+        document.getElementById("attempts").innerText = "Intentos: " + attempts;
+
+        const board = document.getElementById("game-board");
+        board.style.gridTemplateColumns = `repeat(${columns}, 80px)`;
+
+        // Debe haber suficientes emojis para el nivel hard/exreme
+        const emojis = [
+            "🔥", "⚡", "💀", "👾", "🚀", "🎯", "🧠", "🎮",
+            "🛰️", "📡", "🧬", "💣", "🛸", "⚙️", "🔌", "🖥️",
+            "📱", "🕹️", "🔒", "🧪", "🌌", "🧲", "🤖", "🪐"
+        ];
+
+        const totalCards = columns * rows;
+        const totalPairs = totalCards / 2;
+
+        if (totalPairs > emojis.length) {
+            console.error("No hay suficientes emojis para este nivel.");
+        }
+
+        let cards = [...emojis.slice(0, totalPairs), ...emojis.slice(0, totalPairs)];
+        shuffle(cards);
+
+        let first = null;
+        let second = null;
+        let lock = true;
+        let matches = 0;
+        let gameEnded = false;
+
+        cards.forEach((emoji) => {
+            const card = document.createElement("div");
+            card.className = "card";
+            card.innerText = emoji;
+            card.dataset.val = emoji;
+            card.addEventListener("click", () => flip(card));
+            board.appendChild(card);
+        });
+
+        // Mostrar cartas 2 segundos al inicio
+        setTimeout(() => {
+            document.querySelectorAll(".card").forEach((card) => {
+                card.innerText = "?";
+            });
+            lock = false;
+        }, 2000);
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function flip(card) {
+            if (gameEnded || lock || card === first || card.classList.contains("matched") || card.classList.contains("flipped")) {
+                return;
+            }
+
+            document.getElementById("flipSound").play().catch(() => {});
+
+            card.classList.add("flipped");
+            card.innerText = card.dataset.val;
+
+            if (!first) {
+                first = card;
+                return;
+            }
+
+            second = card;
+            lock = true;
+
+            if (first.dataset.val === second.dataset.val) {
+                first.classList.remove("flipped");
+                second.classList.remove("flipped");
+
+                first.classList.add("matched");
+                second.classList.add("matched");
+
+                matches++;
+                resetTurn();
+
+                if (matches === totalPairs) {
+                    winGame();
+                }
+            } else {
+                attempts--;
+                document.getElementById("attempts").innerText = "Intentos: " + attempts;
+
+                setTimeout(() => {
+                    first.innerText = "?";
+                    second.innerText = "?";
+                    first.classList.remove("flipped");
+                    second.classList.remove("flipped");
+                    resetTurn();
+
+                    if (attempts <= 0) {
+                        gameOver();
+                    }
+                }, 700);
+            }
+        }
+
+        function resetTurn() {
+            first = null;
+            second = null;
+            lock = false;
+        }
+
+        const timerInterval = setInterval(() => {
+            if (gameEnded) return;
+
+            timeLeft--;
+            document.getElementById("timer").innerText = timeLeft;
+
+            if (timeLeft <= 0) {
+                gameOver();
+            }
+        }, 1000);
+
+        function winGame() {
+            if (gameEnded) return;
+            gameEnded = true;
+            lock = true;
+
+            clearInterval(timerInterval);
+            saveGame("win");
+
+            document.getElementById("winSound").play().catch(() => {});
+            document.getElementById("winModal").style.display = "flex";
+        }
+
+        function gameOver() {
+            if (gameEnded) return;
+            gameEnded = true;
+            lock = true;
+
+            clearInterval(timerInterval);
+            saveGame("lose");
+
+            document.getElementById("loseSound").play().catch(() => {});
+            document.getElementById("loseModal").style.display = "flex";
+        }
+
+        function volverMenu() {
+            window.location.href = "/menu/";
+        }
+
+        function nextLevel() {
+            if (level === "basic") {
+                window.location.href = "/game/?level=medium";
+            } else if (level === "medium") {
+                window.location.href = "/game/?level=hard";
+            } else if (level === "hard") {
+                window.location.href = "/game/?level=extreme";
+            } else {
+                window.location.href = "/menu/";
+            }
+        }
+
+        function saveGame(result) {
+            fetch("/save-game/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCSRFToken()
+                },
+                body: JSON.stringify({
+                    result: result,
+                    level: level,
+                    time: 60 - timeLeft
+                })
+            })
+            .then((res) => {
+                if (!res.ok) {
+                    throw new Error("Error al guardar la partida");
+                }
+                return res.json();
+            })
+            .then((data) => {
+                console.log("Guardado:", data);
+            })
+            .catch((err) => {
+                console.error("Error guardando partida:", err);
+            });
+        }
+
+        function getCSRFToken() {
+            const name = "csrftoken";
+            let cookieValue = null;
+
+            if (document.cookie) {
+                const cookies = document.cookie.split(";");
+                for (let cookie of cookies) {
+                    cookie = cookie.trim();
+                    if (cookie.startsWith(name + "=")) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>
